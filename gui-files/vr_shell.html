@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Smart Fridge — Холодильник{% endblock %}
+{% block content %}
+<div class="vr-header">
+  <div>
+    <h1 class="page-title">Мой холодильник</h1>
+    <p class="muted">Следите за остатками и сразу отмечайте, что съели или выбросили.</p>
+  </div>
+  {% if session.get('token') %}
+    <button type="button" class="btn btn-dark" id="open-add-product">+ Добавить продукт</button>
+  {% endif %}
+</div>
+
+{% if products %}
+<div class="product-grid">
+  {% for p in products %}
+    <div class="product-card product-card--{{ p.status or 'normal' }}" style="--urgency: {{ p.urgency }}">
+      {% if p.photo_url %}
+        <img class="product-img" src="{{ p.photo_url }}" alt="{{ p.name }}" loading="lazy">
+      {% else %}
+        <div class="product-img product-img-placeholder" aria-hidden="true">🥗</div>
+      {% endif %}
+      <div class="product-name">{{ p.name }}</div>
+      <div class="product-date">
+        {{ p.quantity if p.quantity is defined else 1 }} {{ p.unit or 'шт' }} · до {{ p.date }}
+      </div>
+      {% if p.days_left is not none %}
+        <div class="product-status">
+          {% if p.days_left < 0 %}Просрочено{% elif p.days_left == 0 %}Истекает сегодня{% elif p.days_left <= 3 %}Осталось {{ p.days_left }} дн.{% else %}В запасе{% endif %}
+        </div>
+      {% endif %}
+      {% if session.get('token') and p.id %}
+      <div class="product-actions">
+        <form method="post" action="{{ url_for('item_action') }}">
+          <input type="hidden" name="item_id" value="{{ p.id }}">
+          <input type="hidden" name="action" value="consumed">
+          <input type="hidden" name="quantity" value="{{ p.quantity }}">
+          <button type="submit" class="btn btn-mini">Съели</button>
+        </form>
+        <form method="post" action="{{ url_for('item_action') }}">
+          <input type="hidden" name="item_id" value="{{ p.id }}">
+          <input type="hidden" name="action" value="wasted">
+          <input type="hidden" name="quantity" value="{{ p.quantity }}">
+          <button type="submit" class="btn btn-mini btn-danger-soft">Выбросили</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+  <section class="empty-state">
+    <div class="empty-icon">🧊</div>
+    <h2>Холодильник пока пуст</h2>
+    <p>Добавьте продукты, чтобы видеть сроки годности, рекомендации и статистику.</p>
+  </section>
+{% endif %}
+
+{% if session.get('token') %}
+<dialog id="add-product-dialog" class="ap-dialog">
+  <form method="post" action="{{ url_for('add_product') }}" class="ap-form" id="add-product-form">
+    <h2>Добавить продукт</h2>
+
+    <label>Название
+      <input type="text" name="name" id="ap-name" autocomplete="off" required>
+      <input type="hidden" name="product_id" id="ap-product-id">
+      <ul class="ap-suggestions" id="ap-suggestions"></ul>
+    </label>
+
+    <div class="ap-extra" id="ap-extra" hidden>
+      <label>Категория
+        <select name="category" id="ap-category">
+          <option value="other">Другое</option>
+          <option value="dairy">Молочное</option>
+          <option value="meat">Мясо</option>
+          <option value="vegetable">Овощи</option>
+          <option value="fruit">Фрукты</option>
+          <option value="beverage">Напитки</option>
+        </select>
+      </label>
+      <label>Срок годности по умолчанию (дней)
+        <input type="number" name="default_shelf_life_days" min="1" max="3650">
+      </label>
+      <label>URL картинки (опционально)
+        <input type="url" name="photo_url" placeholder="https://...">
+      </label>
+    </div>
+
+    <label>Количество
+      <input type="number" name="quantity" min="0.1" step="0.1" value="1" required>
+    </label>
+
+    <label>Срок годности
+      <input type="date" name="expiration_date" id="ap-exp" required>
+    </label>
+
+    <div class="ap-actions">
+      <button type="button" class="btn" id="ap-cancel">Отмена</button>
+      <button type="submit" class="btn btn-dark">Сохранить</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="{{ url_for('static', filename='add_product.js') }}"></script>
+{% endif %}
+{% endblock %}

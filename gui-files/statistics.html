@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Smart Fridge — Статистика{% endblock %}
+{% block content %}
+<h1 class="page-title">Статистика</h1>
+<p class="muted">Реальная аналитика по холодильнику: сроки, съеденные продукты и списания за текущий месяц.</p>
+
+<div class="stats-grid">
+  <div class="stat-card"><h3>Всего продуктов</h3><p class="big">{{ stats.total }}</p><p class="muted">сейчас в холодильнике</p></div>
+  <div class="stat-card warning"><h3>Скоро истекают</h3><p class="big">{{ stats.expiring }}</p><p class="muted">нужно использовать</p></div>
+  <div class="stat-card danger"><h3>Просрочено</h3><p class="big">{{ stats.expired }}</p><p class="muted">требует проверки</p></div>
+  <div class="stat-card"><h3>Низкий остаток</h3><p class="big">{{ stats.low_stock }}</p><p class="muted">пора докупить</p></div>
+  <div class="stat-card success"><h3>Съедено за месяц</h3><p class="big">{{ stats.consumed_month }}</p><p class="muted">ед. учёта</p></div>
+  <div class="stat-card danger"><h3>Выброшено за месяц</h3><p class="big">{{ stats.wasted_month }}</p><p class="muted">ед. учёта</p></div>
+</div>
+
+<section class="dashboard-row">
+  <article class="panel">
+    <h2>Что использовать в первую очередь</h2>
+    {% if stats.use_first %}
+      <div class="priority-list">
+        {% for item in stats.use_first %}
+          <div class="priority-item">
+            <div>
+              <strong>{{ item.name }}</strong>
+              <p class="muted">{{ item.quantity }} {{ item.unit }} · срок: {{ item.expiration_date }}</p>
+            </div>
+            <span class="badge {% if item.days_left < 0 %}badge-danger{% else %}badge-warning{% endif %}">
+              {% if item.days_left < 0 %}просрочено{% elif item.days_left == 0 %}сегодня{% else %}{{ item.days_left }} дн.{% endif %}
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state compact">
+        <div class="empty-icon">✅</div>
+        <p>Нет продуктов с критичным сроком годности.</p>
+      </div>
+    {% endif %}
+  </article>
+
+  <article class="panel">
+    <h2>Последние действия</h2>
+    {% if stats.recent_events %}
+      <div class="event-list">
+        {% for event in stats.recent_events %}
+          <div class="event-item">
+            <span class="event-action event-{{ event.action }}">
+              {% if event.action == 'consumed' %}Съедено{% elif event.action == 'wasted' %}Выброшено{% elif event.action == 'added' %}Добавлено{% else %}Изменено{% endif %}
+            </span>
+            <strong>{{ event.product_name }}</strong>
+            <span class="muted">{{ event.quantity }} {{ event.unit }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state compact">
+        <div class="empty-icon">📊</div>
+        <p>История появится после списания или добавления продуктов.</p>
+      </div>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

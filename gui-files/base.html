@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Smart Fridge{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a href="{{ url_for('index') }}" class="brand">Smart Fridge</a>
+      <nav class="nav">
+        <a href="{{ url_for('index') }}"        class="{{ 'active' if active=='home' }}">Главная</a>
+        <a href="{{ url_for('vr_shell') }}"     class="{{ 'active' if active=='vr' }}">Холодильник</a>
+        <a href="{{ url_for('recipe') }}"       class="{{ 'active' if active=='recipe' }}">Рецепты</a>
+        <a href="{{ url_for('ai_assistant') }}" class="{{ 'active' if active=='ai' }}">AI-ассистент</a>
+        <a href="{{ url_for('statistics') }}"   class="{{ 'active' if active=='stats' }}">Статистика</a>
+        {% if session.get('token') %}
+          <a href="{{ url_for('logout') }}" class="btn btn-dark nav-auth">Выйти</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-dark nav-auth">Войти</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <main>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-list">
+            {% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <div class="footer-left">
+        <div class="site-name">Smart Fridge</div>
+        <p class="footer-desc">Сервис для учёта продуктов, контроля сроков годности, рецептов и уменьшения пищевых отходов.</p>
+      </div>
+      <div class="footer-team">
+        <div class="team-member"><strong>Крюков Савелий</strong><span>Руководитель-разработчик</span><a href="mailto:kriukov.sia@phystech.edu">kriukov.sia@phystech.edu</a></div>
+        <div class="team-member"><strong>Люлюшкина Алина</strong><span>Аналитик</span><a href="mailto:lulushkina.alina@gmail.com">lulushkina.alina@gmail.com</a></div>
+        <div class="team-member"><strong>Спасова Ксения</strong><span>Дизайнер</span><a href="mailto:kseniaspasova089@gmail.com">kseniaspasova089@gmail.com</a></div>
+        <div class="team-member"><strong>Комаров Илья</strong><span>Разработчик</span><a href="mailto:komarov.is@phystech.edu">komarov.is@phystech.edu</a></div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

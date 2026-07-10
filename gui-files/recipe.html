@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Smart Fridge — Рецепты{% endblock %}
+{% block content %}
+<div class="vr-header">
+  <h1 class="page-title">Готовые рецепты</h1>
+  {% if session.get('token') %}
+    <button type="button" class="btn btn-dark" id="ai-recipe-btn">🤖 Подобрать рецепт ИИ</button>
+  {% endif %}
+</div>
+
+{% if recipes_list %}
+  <div class="recipes-grid">
+    {% for r in recipes_list %}
+      <article class="recipe-card-static">
+        <h2 class="recipe-card-title">{{ r.title }}</h2>
+        <p class="muted recipe-card-meta">
+          ⏱ {{ r.prep_time_minutes }} мин
+          · 🔥 {{ r.calories }} ккал
+          · {{ r.difficulty }}
+        </p>
+
+        <h4>Ингредиенты</h4>
+        <ul class="recipe-card-ings">
+          {% for ing in r.ingredients %}
+            <li>{{ ing }}</li>
+          {% endfor %}
+        </ul>
+
+        <h4>Приготовление</h4>
+        <p class="recipe-card-instructions">{{ r.instructions }}</p>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted">Не удалось загрузить рецепты. Проверьте, что бэкенд запущен на порту 8000.</p>
+{% endif %}
+
+{% if session.get('token') %}
+<dialog id="ai-recipe-modal" class="ap-dialog">
+  <form method="dialog" id="ai-recipe-form" class="ap-form">
+    <h2>🤖 Подбор рецепта</h2>
+
+    <label>Тип приёма пищи
+      <select name="meal_type">
+        <option value="">Любой</option>
+        <option value="breakfast">Завтрак</option>
+        <option value="lunch">Обед</option>
+        <option value="dinner">Ужин</option>
+        <option value="snack">Перекус</option>
+      </select>
+    </label>
+
+    <label>Кухня
+      <select name="cuisine">
+        <option value="">Любая</option>
+        <option value="русская">Русская</option>
+        <option value="итальянская">Итальянская</option>
+        <option value="азиатская">Азиатская</option>
+        <option value="европейская">Европейская</option>
+      </select>
+    </label>
+
+    <fieldset class="ai-restrictions">
+      <legend>Ограничения</legend>
+      <label class="ai-check"><input type="checkbox" name="restrictions" value="без мяса"> без мяса</label>
+      <label class="ai-check"><input type="checkbox" name="restrictions" value="без молочки"> без молочки</label>
+      <label class="ai-check"><input type="checkbox" name="restrictions" value="без глютена"> без глютена</label>
+    </fieldset>
+
+    <div class="ap-actions">
+      <button type="button" class="btn" id="ai-recipe-cancel">Отмена</button>
+      <button type="button" class="btn btn-dark" id="ai-recipe-submit">Подобрать</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="ai-recipe-result" class="ai-recipe-result"></div>
+
+<script src="{{ url_for('static', filename='ai_recipe.js') }}"></script>
+{% endif %}
+{% endblock %}

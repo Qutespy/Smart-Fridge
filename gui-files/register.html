@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Register — Smart Fridge{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <h2>Регистрация</h2>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+  <form method="POST" class="auth-form">
+    <input type="text" name="full_name" placeholder="Полное имя" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Пароль" required>
+    <button type="submit" class="btn btn-dark">Зарегистрироваться</button>
+  </form>
+  <p class="auth-link">Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+</section>
+{% endblock %}

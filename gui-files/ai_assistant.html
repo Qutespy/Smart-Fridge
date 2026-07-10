@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Smart Fridge — AI-ассистент{% endblock %}
+{% block content %}
+<section class="ai-hero">
+  <h1>AI-ассистент</h1>
+  <p>ИИ подберёт рецепты по вашим продуктам и подскажет, что лучше приготовить сегодня.</p>
+</section>
+
+<section class="assistant-form-card">
+  <h2>Запустить персональный разбор холодильника</h2>
+  <form method="post" class="assistant-form">
+    <label>
+      <span>Цель</span>
+      <textarea name="goal" rows="3" placeholder="Например: приготовить быстрый ужин и использовать продукты с коротким сроком годности">{{ form_data.goal }}</textarea>
+    </label>
+
+    <label>
+      <span>Ограничения</span>
+      <textarea name="restrictions" rows="3" placeholder="Например: без сахара, больше белка, без жарки">{{ form_data.restrictions }}</textarea>
+    </label>
+
+    <label>
+      <span>Сколько рецептов показать</span>
+      <select name="max_recipes">
+        {% for n in [1,2,3,4,5] %}
+          <option value="{{ n }}" {% if form_data.max_recipes == n %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <button class="btn btn-dark" type="submit">Начать</button>
+  </form>
+</section>
+
+{% if assistant_result %}
+<section class="assistant-result">
+  <div class="result-head">
+    <div>
+      <h2>Результат ИИ</h2>
+      <p class="muted">Модель: {{ assistant_result._meta.model if assistant_result._meta else 'deepseek-chat' }}</p>
+    </div>
+    <div class="best-choice-badge">Лучший выбор: {{ assistant_result.best_choice }}</div>
+  </div>
+
+  <div class="result-summary-grid">
+    <div class="summary-card">
+      <h3>Кратко</h3>
+      <p>{{ assistant_result.summary }}</p>
+    </div>
+    <div class="summary-card">
+      <h3>Совет</h3>
+      <p>{{ assistant_result.general_advice }}</p>
+    </div>
+  </div>
+
+  {% if assistant_result.inventory %}
+  <section class="inventory-strip">
+    <h3>Что ассистент увидел в холодильнике</h3>
+    <div class="inventory-tags">
+      {% for item in assistant_result.inventory %}
+        <div class="inventory-tag {% if item.is_urgent %}urgent{% endif %}">
+          {{ item.product_name }} · {{ item.quantity }} {{ item.unit }} · {{ item.expiration_date }}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="recipe-list-llm">
+    {% for recipe in assistant_result.recipes %}
+      <article class="llm-recipe-card">
+        <div class="llm-recipe-top">
+          <div>
+            <h3>{{ recipe.title }}</h3>
+            <p class="muted">{{ recipe.prep_time_minutes }} мин · {{ recipe.difficulty }} · ~{{ recipe.calories_estimate }} ккал</p>
+          </div>
+        </div>
+
+        <p><strong>Почему подходит:</strong> {{ recipe.why_it_fits }}</p>
+
+        {% if recipe.use_first %}
+        <div class="llm-block">
+          <h4>Использовать в первую очередь</h4>
+          <ul>
+            {% for item in recipe.use_first %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if recipe.missing_ingredients %}
+        <div class="llm-block">
+          <h4>Чего не хватает</h4>
+          <ul>
+            {% for item in recipe.missing_ingredients %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if recipe.substitutions %}
+        <div class="llm-block">
+          <h4>Чем заменить</h4>
+          <ul>
+            {% for item in recipe.substitutions %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if recipe.steps %}
+        <div class="llm-block">
+          <h4>Шаги приготовления</h4>
+          <ol>
+            {% for step in recipe.steps %}
+              <li>{{ step }}</li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+</section>
+{% endif %}
+
+<section>
+  <h2>Быстрые подсказки из базы рецептов</h2>
+  <div class="pp-grid">
+    <div class="pp-featured">
+      <div class="pp-img pp-img--big"></div>
+      <h3>{{ recipes[0].title }}</h3>
+      <p class="muted">{{ recipes[0].desc }}</p>
+      <p class="muted">{{ recipes[0].kcal }}</p>
+      {% if recipes[0].time %}<p class="muted">{{ recipes[0].time }}</p>{% endif %}
+      {% if recipes[0].id %}
+        <a href="{{ url_for('recipe', id=recipes[0].id) }}" class="btn btn-dark">Узнать больше</a>
+      {% endif %}
+    </div>
+    <div class="pp-side">
+      {% for r in recipes[1:] %}
+      <div class="pp-item">
+        <div class="pp-img"></div>
+        <div>
+          <h4>{{ r.title }}</h4>
+          <p class="muted">{{ r.desc }}</p>
+          <p class="muted">{{ r.kcal }}</p>
+          {% if r.time %}<p class="muted">{{ r.time }}</p>{% endif %}
+          {% if r.missing %}
+            <p class="muted">Не хватает: {{ r.missing | join(', ') }}</p>
+          {% endif %}
+          {% if r.id %}
+            <a href="{{ url_for('recipe', id=r.id) }}" class="btn btn-light">Открыть рецепт</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

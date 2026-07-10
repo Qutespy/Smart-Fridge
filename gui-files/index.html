@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Smart Fridge — Главная{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Smart Fridge</h1>
+  <p class="lead">Умный холодильник, который помогает не выбрасывать продукты и подбирает рецепты под то, что у вас уже есть.</p>
+  <div class="cta">
+    <a href="{{ url_for('vr_shell') }}" class="btn btn-dark">Перейти к холодильнику</a>
+    <a href="{{ url_for('ai_assistant') }}" class="btn btn-light">AI-ассистент</a>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <h3>Холодильник</h3>
+    <p>Все продукты, которые сейчас лежат в холодильнике. Те, что скоро испортятся, подсвечиваются красным.</p>
+  </div>
+  <div class="feature">
+    <h3>AI-ассистент</h3>
+    <p>Подбирает рецепты по содержимому холодильника, тренды из соцсетей и ПП-варианты.</p>
+  </div>
+  <div class="feature">
+    <h3>Статистика</h3>
+    <p>Сколько еды вы сэкономили, а сколько всё-таки выбросили — по неделям и месяцам.</p>
+  </div>
+</section>
+{% endblock %}
